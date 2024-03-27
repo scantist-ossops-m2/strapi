@@ -1,8 +1,8 @@
 import { createCommand } from 'commander';
-import { yup } from '@strapi/utils';
 import _ from 'lodash';
 import inquirer, { type QuestionCollection } from 'inquirer';
-import { strapiFactory } from '@strapi/core';
+import { yup } from '@strapi/utils';
+import { createStrapi, compileStrapi } from '@strapi/core';
 
 import { runAction } from '../../utils/helpers';
 import type { StrapiCommand } from '../../types';
@@ -73,8 +73,8 @@ const promptQuestions: QuestionCollection<Answers> = [
 ];
 
 async function createAdmin({ email, password, firstname, lastname }: CmdOptions) {
-  const appContext = await strapiFactory.compile();
-  const app = await strapiFactory(appContext).load();
+  const appContext = await compileStrapi();
+  const app = await createStrapi(appContext).load();
 
   const user = await app.admin.services.user.exists({ email });
 
