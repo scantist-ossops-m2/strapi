@@ -1,7 +1,7 @@
 import { createCommand } from 'commander';
 import { yup } from '@strapi/utils';
 import _ from 'lodash';
-import inquirer from 'inquirer';
+import inquirer, { type QuestionCollection } from 'inquirer';
 import { strapiFactory } from '@strapi/core';
 
 import { runAction } from '../../utils/helpers';
@@ -44,7 +44,7 @@ interface Answers {
  * but then the logic of the validate function needs to change.
  */
 // eslint-disable-next-line rxjs/finnish
-const promptQuestions: inquirer.QuestionCollection<Answers> = [
+const promptQuestions: QuestionCollection<Answers> = [
   {
     type: 'input',
     name: 'email',

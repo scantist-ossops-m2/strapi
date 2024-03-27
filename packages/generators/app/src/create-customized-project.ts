@@ -1,4 +1,3 @@
-import inquirer from 'inquirer';
 import { merge } from 'lodash';
 
 import { trackUsage } from './utils/usage';
@@ -47,6 +46,8 @@ async function askDbInfosAndTest(scope: Scope) {
 }
 
 async function askDatabaseInfos(scope: Scope) {
+  const { default: inquirer } = await import('inquirer');
+
   const { client } = await inquirer.prompt<{ client: 'sqlite' | 'postgres' | 'mysql' }>([
     {
       type: 'list',
@@ -77,6 +78,7 @@ async function askDatabaseInfos(scope: Scope) {
 }
 
 async function askAboutLanguages() {
+  const { default: inquirer } = await import('inquirer');
   const { language } = await inquirer.prompt([
     {
       type: 'list',

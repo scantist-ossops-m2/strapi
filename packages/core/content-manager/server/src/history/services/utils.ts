@@ -1,5 +1,5 @@
 import { difference, omit } from 'lodash/fp';
-import { Schema } from '@strapi/types';
+// import { Schema } from '@strapi/types';
 import { CreateHistoryVersion } from '../../../../shared/contracts/history-versions';
 import { FIELDS_TO_IGNORE } from '../constants';
 
@@ -9,7 +9,7 @@ import { FIELDS_TO_IGNORE } from '../constants';
  */
 export const getSchemaAttributesDiff = (
   versionSchemaAttributes: CreateHistoryVersion['schema'],
-  contentTypeSchemaAttributes: Schema.Attributes
+  contentTypeSchemaAttributes: any
 ) => {
   // Omit the same fields that were omitted when creating a history version
   const sanitizedContentTypeSchemaAttributes = omit(

@@ -1,8 +1,8 @@
-import type { Question } from 'inquirer';
+// import type { Question } from 'inquirer';
 import type { Scope } from '../types';
 
 interface QuestionFactory {
-  (options: { scope: Scope; client: 'postgres' | 'mysql' | 'sqlite' }): Question;
+  (options: { scope: Scope; client: 'postgres' | 'mysql' | 'sqlite' }): any;
 }
 
 const DEFAULT_PORTS = {
