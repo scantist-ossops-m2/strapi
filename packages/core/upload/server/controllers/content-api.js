@@ -1,5 +1,8 @@
 'use strict';
 
+const path = require('path');
+const busboy = require('busboy');
+const sharp = require('sharp');
 const _ = require('lodash');
 const utils = require('@strapi/utils');
 const { getService } = require('../utils');
@@ -109,25 +112,106 @@ module.exports = {
       request: { body, files: { files } = {} },
     } = ctx;
 
-    const data = await validateUploadBody(body, Array.isArray(files));
+    // const data = await validateUploadBody(body, Array.isArray(files));
 
-    const apiUploadFolderService = getService('api-upload-folder');
+    // const apiUploadFolderService = getService('api-upload-folder');
 
-    const apiUploadFolder = await apiUploadFolderService.getAPIUploadFolder();
+    // const apiUploadFolder = await apiUploadFolderService.getAPIUploadFolder();
 
-    if (Array.isArray(files)) {
-      data.fileInfo = data.fileInfo || [];
-      data.fileInfo = files.map((_f, i) => ({ ...data.fileInfo[i], folder: apiUploadFolder.id }));
-    } else {
-      data.fileInfo = { ...data.fileInfo, folder: apiUploadFolder.id };
-    }
+    // if (Array.isArray(files)) {
+    //   data.fileInfo = data.fileInfo || [];
+    //   data.fileInfo = files.map((_f, i) => ({ ...data.fileInfo[i], folder: apiUploadFolder.id }));
+    // } else {
+    //   data.fileInfo = { ...data.fileInfo, folder: apiUploadFolder.id };
+    // }
 
-    const uploadedFiles = await getService('upload').upload({
-      data,
-      files,
-    });
+    // const uploadedFiles = await getService('upload').upload({
+    //   data,
+    //   files,
+    // });
 
-    ctx.body = await sanitizeOutput(uploadedFiles, ctx);
+    // ctx.body = await sanitizeOutput(uploadedFiles, ctx);
+
+    /*
+
+    1. for each file
+      - validate allowed mimetype
+      - validate allowed size
+
+      - create a transformation & upload stream for each file
+      - pipe the file to the transformation
+      - pipe the transformation to the upload stream
+
+      - push in an array the metadatas of the file
+
+    2. store metadatas in a database
+      - read the fileInfo from the request
+      - combine the fileInfo with the metadatas
+      - store in the database
+
+    */
+
+    const onFile = async (fieldname, fileStream, filename, encoding, mimetype) => {
+      console.log('File:', fieldname, filename);
+
+      // file.pause();
+
+      const { optimize, isImage, isFaultyImage, isOptimizableImage } = strapi
+        .plugin('upload')
+        .service('image-manipulation');
+
+      const currentFile = {
+        name: filename,
+        type: mimetype,
+        ext: path.extname(filename),
+        // size: file.length,
+        getStream: () => fileStream,
+      };
+
+      if (await isImage(currentFile)) {
+        const pipeline = sharp();
+        currentFile.getStream().pipe(pipeline);
+        currentFile.getStream = () => pipeline.clone();
+
+        if (await isFaultyImage(currentFile)) {
+          throw new Error('File is not a valid image');
+        }
+
+        if (await isOptimizableImage(currentFile)) {
+          return optimize(currentFile);
+        }
+      }
+
+      // file.resume();
+    };
+
+    const req = ctx.req;
+    const bb = busboy({ headers: req.headers });
+
+    const p = () =>
+      new Promise((resolve, reject) => {
+        bb.on('file', onFile);
+
+        bb.on('finish', () => {
+          console.log('Done parsing form!');
+          resolve();
+        });
+
+        bb.on('error', (err) => {
+          console.log('Error parsing form:', err);
+          reject(err);
+        });
+
+        bb.on('close', () => {
+          console.log('close');
+        });
+
+        req.pipe(bb);
+      });
+
+    await p();
+
+    ctx.body = [];
   },
 
   async upload(ctx) {
