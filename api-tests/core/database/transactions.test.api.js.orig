@@ -263,7 +263,7 @@ describe('transactions', () => {
         .where({ id: 1 })
         .execute();
 
-      expect(end[0].key).toEqual(original[0].key);
+      expect(end[0].key).toEqual('strapi_content_types_schema');
     });
 
     test('rollback successfully', async () => {
@@ -302,7 +302,7 @@ describe('transactions', () => {
         .where({ id: 1 })
         .execute();
 
-      expect(end[0].key).toEqual(original[0].key);
+      expect(end[0].key).toEqual('strapi_content_types_schema');
     });
   });
 });
